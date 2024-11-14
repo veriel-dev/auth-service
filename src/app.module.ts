@@ -1,11 +1,13 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Inject, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { LoggerModule } from './logger/logger.module';
 import jwtConfig from './config/jwt.config';
+import { CustomLoggerService } from './logger/customlogger.service';
 
 @Module({
   imports: [
@@ -23,16 +25,23 @@ import jwtConfig from './config/jwt.config';
     }),
     AuthModule,
     UsersModule,
+    LoggerModule,
   ],
 })
 export class AppModule implements OnModuleInit {
-  constructor(private dataSource: DataSource) {}
+  constructor(
+    private dataSource: DataSource,
+    @Inject('Logger') private readonly logger: CustomLoggerService,
+  ) {}
 
   async onModuleInit() {
+    const { type, username, password, port, database, host } = this.dataSource
+      .options as any;
+    const databaseUrl = `${type}://${username}:${password}@${host}:${port}/${database}`;
     if (this.dataSource.isInitialized) {
-      console.log('DB Conectada correctamente');
+      this.logger.log('Conexión correcta a la base de datos', databaseUrl);
     } else {
-      console.log('Error en la conexión a la DB');
+      this.logger.error('Error al conectarse a la base de datos', databaseUrl);
     }
   }
 }
