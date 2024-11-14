@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
@@ -7,6 +7,8 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { IAuthResponse, ITokens } from '../interfaces/auth.interface';
 import { ConfigService } from '@nestjs/config';
+import { ErrorFactory } from '../exceptions/exception.factory';
+import { ErrorCodes } from '../exceptions/error-code';
 
 @Injectable()
 export class AuthService {
@@ -21,9 +23,13 @@ export class AuthService {
     const existingUser = await this.usersRepository.findOne({
       where: { email },
     });
-    if (existingUser) {
-      throw new UnauthorizedException('Email already exists');
-    }
+    if (existingUser)
+      throw ErrorFactory.create(
+        ErrorCodes.AUTH.EMAIL_ALREADY_EXISTS,
+        undefined,
+        HttpStatus.BAD_REQUEST,
+      );
+
     // Crear nuevo usuario
     const user = new User();
     user.email = email;
@@ -83,12 +89,8 @@ export class AuthService {
       this.jwtService.signAsync(
         { sub: user.id, email: user.email },
         {
-          secret:
-            this.configService.get<string>('JWT_SECRET') ||
-            'FdTx/GZia8XYoc9EOysRsPJ6Mk1iY3YjpXPGXHxtiWCCOQ9bL6GHNUnDU+on1hEC',
-          expiresIn:
-            this.configService.get<string>('JWT_EXPIRATION') ||
-            'FdTx/GZia8XYoc9EOysRsPJ6Mk1iY3YjpXPGXHxtiWCCOQ9bL6GHNUnDU+on1hEC',
+          secret: this.configService.get<string>('jwt.secret'),
+          expiresIn: this.configService.get<string>('jwt.refreshExpiresIn'),
         },
       ),
       this.jwtService.signAsync(
@@ -97,12 +99,8 @@ export class AuthService {
           email: user.email,
         },
         {
-          secret:
-            this.configService.get<string>('JWT_SECRET') ||
-            'FdTx/GZia8XYoc9EOysRsPJ6Mk1iY3YjpXPGXHxtiWCCOQ9bL6GHNUnDU+on1hEC',
-          expiresIn:
-            this.configService.get<string>('JWT_EXPIRATION') ||
-            'FdTx/GZia8XYoc9EOysRsPJ6Mk1iY3YjpXPGXHxtiWCCOQ9bL6GHNUnDU+on1hEC',
+          secret: this.configService.get<string>('jwt.secret'),
+          expiresIn: this.configService.get<string>('jwt.refreshExpiresIn'),
         },
       ),
     ]);
