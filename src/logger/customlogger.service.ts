@@ -2,6 +2,9 @@ import { Injectable, LoggerService } from '@nestjs/common';
 import { LoggerConfig, LogLevel } from './interfaces/logger-config.interface';
 import { FileManager } from './utils/file-manager.util';
 import { DEFAULT_LOGGER_CONFIG } from './constants/logger.constants';
+
+import { LOG_COLORS, ANSI_COLORS } from './constants/logger-colors.constants';
+
 @Injectable()
 export class CustomLoggerService implements LoggerService {
   private readonly config: LoggerConfig;
@@ -19,10 +22,37 @@ export class CustomLoggerService implements LoggerService {
   private getTimestamp(): string {
     return new Date().toISOString();
   }
+  private colorize(text: string, color: string): string {
+    return `${color}${text}${ANSI_COLORS.reset}`;
+  }
   private formatMessage(level: string, message: any, context?: string): string {
     const timestamp = this.getTimestamp();
     const contextInfo = context || this.context;
-    return `[${timestamp}] [${level}] ${contextInfo ? `[${contextInfo}] ` : ''}${message}`;
+
+    // Formatear timestamp
+    const coloredTimestamp = this.colorize(
+      `[${timestamp}]`,
+      LOG_COLORS.timestamp,
+    );
+
+    // Formatear nivel de log
+    const coloredLevel = this.colorize(
+      `[${level}]`,
+      LOG_COLORS.level[level as keyof typeof LOG_COLORS.level],
+    );
+
+    // Formatear contexto si existe
+    const coloredContext = contextInfo
+      ? this.colorize(`[${contextInfo}]`, LOG_COLORS.context)
+      : '';
+
+    // Formatear mensaje
+    const coloredMessage = this.colorize(
+      typeof message === 'object' ? JSON.stringify(message, null, 2) : message,
+      LOG_COLORS.message,
+    );
+
+    return `${coloredTimestamp} ${coloredLevel} ${coloredContext} ${coloredMessage}`;
   }
   private shouldLog(level: LogLevel): boolean {
     return level <= this.config.level;

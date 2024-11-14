@@ -40,8 +40,6 @@ export class AppModule implements OnModuleInit {
     const databaseUrl = `${type}://${username}:${password}@${host}:${port}/${database}`;
     if (this.dataSource.isInitialized) {
       this.logger.log('Conexión correcta a la base de datos', databaseUrl);
-    } else {
-      this.logger.error('Error al conectarse a la base de datos', databaseUrl);
     }
   }
 }
