@@ -1,0 +1,14 @@
+// .vscode/settings.json
+{
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "always"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "workbench.iconTheme": "material-icon-theme",
+    "editor.tabSize": 4,
+    
+}
