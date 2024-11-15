@@ -1,5 +1,11 @@
 export interface LogColors {
-  timestamp: string;
+  timestamp: {
+    ERROR: string;
+    WARN: string;
+    INFO: string;
+    DEBUG: string;
+    VERBOSE: string;
+  };
   level: {
     ERROR: string;
     WARN: string;
@@ -8,5 +14,4 @@ export interface LogColors {
     VERBOSE: string;
   };
   context: string;
-  message: string;
 }

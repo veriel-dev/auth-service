@@ -28,7 +28,13 @@ export const ANSI_COLORS = {
 };
 
 export const LOG_COLORS: LogColors = {
-  timestamp: ANSI_COLORS.bright + ANSI_COLORS.white,
+  timestamp: {
+    ERROR: ANSI_COLORS.bright + ANSI_COLORS.red,
+    WARN: ANSI_COLORS.yellow,
+    INFO: ANSI_COLORS.green,
+    DEBUG: ANSI_COLORS.cyan,
+    VERBOSE: ANSI_COLORS.magenta,
+  },
   level: {
     ERROR: ANSI_COLORS.bright + ANSI_COLORS.red,
     WARN: ANSI_COLORS.yellow,
@@ -36,6 +42,5 @@ export const LOG_COLORS: LogColors = {
     DEBUG: ANSI_COLORS.cyan,
     VERBOSE: ANSI_COLORS.magenta,
   },
-  context: ANSI_COLORS.bright + ANSI_COLORS.blue,
-  message: ANSI_COLORS.reset,
+  context: ANSI_COLORS.bright + ANSI_COLORS.yellow,
 };

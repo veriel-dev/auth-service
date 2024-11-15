@@ -15,4 +15,5 @@ export const ErrorMessages = {
   [ErrorCodes.GENERIC.VALIDATION_ERROR]: 'Error inesperado',
   [ErrorCodes.GENERIC.DATABASE_ERROR]: 'Error en la base de datos',
   [ErrorCodes.GENERIC.UNEXPECTED_ERROR]: 'Error inesperado',
+  [ErrorCodes.GENERIC.SYSTEM_ERROR]: 'Error interno del sistema',
 };

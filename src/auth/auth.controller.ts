@@ -7,6 +7,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
@@ -19,6 +20,7 @@ import { ErrorMessages } from '../exceptions/error-messages';
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
@@ -35,7 +37,7 @@ export class AuthController {
   }
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async register(@Request() req) {
+  async login(@Request() req, @Body() __loginDto: CreateAuthDto) {
     try {
       return await this.authService.login(req.user);
     } catch (_) {
@@ -50,14 +52,20 @@ export class AuthController {
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   async refreshToken(@Request() req) {
+    this.logger.log(
+      'Incio del proceso de refresco del token',
+      `userId: ${req.user.sub} - refreshToken: ${req.user.refreshToken}`,
+    );
     try {
-      return await this.authService.refreshToken(req.user.sub);
-    } catch (error) {
+      return await this.authService.refreshToken(
+        req.user.sub,
+        req.user.refreshToken,
+      );
+    } catch (_) {
       throw new HttpException(
         {
           status: HttpStatus.UNAUTHORIZED,
-          error: 'Error al refrescar el token',
-          message: error.message,
+          error: 'Error interno del sistema',
         },
         HttpStatus.UNAUTHORIZED,
       );

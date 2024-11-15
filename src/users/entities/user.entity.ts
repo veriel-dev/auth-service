@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import { UserRole } from '../enums/user-role';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -26,6 +27,17 @@ export class User {
 
   @Column({ default: 'free' })
   plan: string;
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.USER,
+  })
+  role: UserRole;
+  @Column({
+    default: true,
+    name: 'is_active',
+  })
+  isActive: boolean;
 
   @Column({ nullable: true })
   lastLogin: Date;

@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
@@ -9,9 +9,11 @@ import { IAuthResponse, ITokens } from '../interfaces/auth.interface';
 import { ConfigService } from '@nestjs/config';
 import { ErrorFactory } from '../exceptions/exception.factory';
 import { ErrorCodes } from '../exceptions/error-code';
+import { ErrorMessages } from '../exceptions/error-messages';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
@@ -64,6 +66,8 @@ export class AuthService {
   }
   async login(user: User): Promise<IAuthResponse> {
     const tokens = await this.getTokens(user);
+    // Upadte last Login
+    this.updateTimeLastLogin(user);
     return {
       user: {
         id: user.id,
@@ -75,22 +79,52 @@ export class AuthService {
       ...tokens,
     };
   }
-  async refreshToken(userId: string) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+  async refreshToken(userId: string, refreshToken: string) {
+    this.logger.log(
+      `${userId} - ${refreshToken}`,
+      'userId + RefreshToken - AuthService',
+    );
+    //1. Verify Refresh Token
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken);
 
-    const tokens = await this.getTokens(user);
-    return tokens;
+      // 2. Verifia contains user in Token
+      if (payload.sub != userId) {
+        throw ErrorFactory.create(
+          ErrorCodes.AUTH.INVALID_TOKEN,
+          ErrorMessages[ErrorCodes.AUTH.INVALID_TOKEN],
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+      //3. Get User
+      const user = await this.usersRepository.findOne({
+        where: { id: userId },
+      });
+      if (!user) {
+        throw ErrorFactory.create(
+          ErrorCodes.AUTH.USER_NOT_FOUND,
+          ErrorMessages[ErrorCodes.AUTH.USER_NOT_FOUND],
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+      // 4. Generate New Token
+      const tokens = await this.getTokens(user);
+      return tokens;
+    } catch (_) {
+      throw ErrorFactory.create(
+        ErrorCodes.AUTH.INVALID_TOKEN,
+        ErrorMessages[ErrorCodes.AUTH.INVALID_TOKEN],
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
   }
   private async getTokens(user: User): Promise<ITokens> {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: user.id, email: user.email },
+        { sub: user.id, email: user.email, roles: user.role },
         {
           secret: this.configService.get<string>('jwt.secret'),
-          expiresIn: this.configService.get<string>('jwt.refreshExpiresIn'),
+          expiresIn: this.configService.get<string>('jwt.expiresIn'),
         },
       ),
       this.jwtService.signAsync(
@@ -108,5 +142,16 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+  private async updateTimeLastLogin(user: User): Promise<void> {
+    await this.usersRepository.update(
+      {
+        id: user.id,
+      },
+      {
+        lastLogin: new Date(),
+        updatedAt: new Date(),
+      },
+    );
   }
 }

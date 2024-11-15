@@ -18,5 +18,6 @@ export const ErrorCodes = {
     VALIDATION_ERROR: 'COD_12',
     DATABASE_ERROR: 'COD_13',
     UNEXPECTED_ERROR: 'C0D_14',
+    SYSTEM_ERROR: 'COD_15',
   },
 };
