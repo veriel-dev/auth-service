@@ -1,3 +1,15 @@
-import { UserResponseDto } from '../dto/user-responde.';
+import { SubscriptionStatus } from '../../common/enums/subscription-status.enum';
+import { UserRole } from '../../common/enums/user-role.enum';
 
-export type UserProfile = UserResponseDto;
+export interface UserResponse {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  role: UserRole;
+  isEmailVerified: boolean;
+  subscriptionStatus: SubscriptionStatus;
+  lastLogin: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}

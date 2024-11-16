@@ -9,6 +9,6 @@
     },
     "typescript.preferences.importModuleSpecifier": "relative",
     "workbench.iconTheme": "material-icon-theme",
-    "editor.tabSize": 4,
+    "editor.tabSize": 2,
     
 }

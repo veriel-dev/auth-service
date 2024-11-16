@@ -3,17 +3,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { LoggerModule } from './logger/logger.module';
-import jwtConfig from './config/jwt.config';
+import { AuthModule } from './auth/auth.module';
+import { SeedsModule } from './seeds/seeds.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: `.env.${process.env.NODE_ENV}`,
       isGlobal: true,
-      load: [databaseConfig, jwtConfig],
+      load: [databaseConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -22,22 +21,26 @@ import jwtConfig from './config/jwt.config';
         ...configService.get('database'),
       }),
     }),
-    AuthModule,
     UsersModule,
-    LoggerModule,
+    AuthModule,
+    SeedsModule,
   ],
 })
 export class AppModule implements OnModuleInit {
   private readonly logger = new Logger(AppModule.name);
-  constructor(
-    private dataSource: DataSource,
-    // @Inject('Logger') private readonly logger: CustomLoggerService,
-  ) {}
+  constructor(private dataSource: DataSource) {}
 
   async onModuleInit() {
     const { type, username, password, port, database, host } = this.dataSource
       .options as any;
     const databaseUrl = `${type}://${username}:${password}@${host}:${port}/${database}`;
+    console.log('¿Base de datos conectada?:', this.dataSource.isInitialized);
+    const entities = this.dataSource.entityMetadatas;
+    console.log(
+      'Entidades:',
+      entities.map((entity) => entity.name),
+    );
+
     if (this.dataSource.isInitialized) {
       this.logger.log('Conexión correcta a la base de datos', databaseUrl);
     }
