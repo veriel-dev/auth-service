@@ -1,4 +1,4 @@
-# Auth Service - Web Builder SaaS
+# Auth Service
 
 Microservicio de autenticación y gestión de usuarios para la plataforma Web Builder SaaS.
 
